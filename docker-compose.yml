@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    image: php:8.2-fpm
+    container_name: posera-app
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - posera
+
+  nginx:
+    image: nginx:alpine
+    container_name: posera-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - posera
+
+networks:
+  posera:
+    driver: bridge
