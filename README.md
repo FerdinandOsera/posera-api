@@ -6,7 +6,7 @@ Laravel-powered backend for **Posera**, a custom POS system designed for sari-sa
 
 ## 🚀 Quick Start (For Developers)
 
-This project runs inside Docker and will **auto-setup everything** (dependencies, `.env`, SQLite database, permissions, etc.).
+This project runs inside Docker and will **auto-setup everything**: environment, dependencies, database, and Laravel initialization.
 
 ### ✅ Prerequisites
 
@@ -24,113 +24,111 @@ docker compose up --build
 
 This will:
 
-- Install PHP dependencies via Composer
-- Create `.env` if not found
-- Generate `APP_KEY`
-- Create SQLite database if missing
-- Set Laravel permissions
+- Build the PHP + Laravel container
+- Create `.env` file if missing
+- Generate the Laravel `APP_KEY`
+- Wait for MySQL to be ready
+- Run database migrations automatically
+- Set permissions for Laravel storage/cache
 - Start the app via Nginx
 
-Once running, access at:  
+Access the app via:  
 📍 http://localhost:8000
 
 ---
 
 ## 🔁 Daily Use
 
-After the first build, just run:
+After initial setup, just run:
 
 ```bash
 docker compose up
 ```
 
+The containers will reuse existing builds and run smoothly.
+
 ---
 
 ## 🗂 Project Structure
 
-| Path               | Description                          |
-|--------------------|--------------------------------------|
-| `/posera-api`      | Laravel app root                     |
-| `/docker/`         | Nginx config                         |
-| `Dockerfile`       | PHP + Laravel container build        |
-| `docker-compose.yml` | Defines app + web server services  |
-| `bootstrap.sh`     | Auto-run setup script inside the container |
+| Path                 | Description                                      |
+|----------------------|--------------------------------------------------|
+| `/posera-api`        | Laravel app root                                 |
+| `/docker/`           | Nginx and container config                        |
+| `Dockerfile`         | PHP + Laravel container build instructions       |
+| `docker-compose.yml` | Defines app, web server, and database containers |
+| `bootstrap.sh`       | Startup script: waits for MySQL, runs Laravel setup |
 
 ---
 
 ## 🧪 Verifying It Works
 
-Run:
+To verify Laravel is running:
 
 ```bash
 docker logs -f posera-app
 ```
 
-Look for:
+You should see:
 
 ```
-GET /index.php" 200
+✅ Bootstrap complete. Laravel is ready!
 ```
 
-Visit http://localhost:8000 — you should see the Laravel welcome page.
+Visit [http://localhost:8000](http://localhost:8000) — Laravel welcome page should appear.
 
 ---
 
-## ⚙️ Current Setup (Local Docker Build)
+## 📦 Laravel Features Enabled
 
-This setup is optimized for:
+- MySQL 10.5 (via MariaDB)
+- Auto-run migrations on boot
+- `.env` auto-generation
+- `bootstrap.sh` handles setup every run
+- Queue, Cache, and Session drivers configured
 
-- Solo development
-- Small team (1–2 developers)
-- Rapid iteration with full Laravel access
+---
 
-When you run:
+## ⚙️ Environment Overview
 
-```bash
-docker compose up --build
-```
-
-Everything is built fresh, ensuring consistency and allowing troubleshooting during early development.
+- DB: `MySQL` via Docker container `posera-db`
+- Laravel backend: `php-fpm` in `posera-app`
+- Web server: `nginx` container `posera-nginx`
+- Database credentials are defined in `.env` and injected at runtime
 
 ---
 
 ## 🚀 Future Scaling (Optional)
 
-When you're ready to grow the team or introduce CI/CD pipelines:
+When you're ready for remote devs, CI/CD, or production:
 
-### Build and push your image:
+### Build and push your own image:
 
 ```bash
 docker build -t yourname/posera-api:latest .
 docker push yourname/posera-api:latest
 ```
 
-### Update `docker-compose.yml` to:
+Then update `docker-compose.yml`:
 
 ```yaml
 services:
-  posera-app:
+  app:
     image: yourname/posera-api:latest
 ```
 
-💡 This allows new developers to get started with:
+💡 Now others can start with:
 
 ```bash
 docker compose pull
 docker compose up
 ```
 
-### Benefits:
-
-- Much faster setup time
-- Ideal for onboarding and automation
-- Ensures known-good builds are used
-
 ---
 
-## 🧼 Troubleshooting
+## 🧼 Resetting Everything (Hard Rebuild)
 
-To fully reset the environment:
+Use this to fully reset the environment:
 
 ```bash
 docker compose down -v
@@ -140,9 +138,22 @@ docker compose up --build
 
 ---
 
+## 🛠 Troubleshooting
+
+### MySQL Access Denied?
+
+- Ensure `.env` DB credentials match those in `docker-compose.yml`
+- Run `docker exec -it posera-db mysql -u root -p` and verify
+
+### Cache Table Missing?
+
+Bootstrap script now runs migrations automatically on first boot.
+
+---
+
 ## 🛣 What's Next
 
-Frontend (Vue + Tailwind) will live in `/posera-frontend` and communicate via API.
+The frontend (`/posera-frontend`) using **Vue 3 + TailwindCSS** will interact with this API and share auth via token-based headers (coming soon).
 
 ---
 

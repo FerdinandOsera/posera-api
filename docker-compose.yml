@@ -2,13 +2,21 @@ version: '3.8'
 
 services:
   app:
-    image: php:8.2-fpm
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: posera-app
     container_name: posera-app
-    working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html
-    networks:
-      - posera
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: posera_db
+      DB_USERNAME: posera_admin
+      DB_PASSWORD: Gx2fN7!uKq93zWv#
 
   nginx:
     image: nginx:alpine
@@ -16,13 +24,24 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - ./:/var/www/html
+      - .:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - app
-    networks:
-      - posera
 
-networks:
-  posera:
-    driver: bridge
+  db:
+    image: mariadb:10.5
+    container_name: posera-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: posera_db
+      MYSQL_USER: posera_admin
+      MYSQL_PASSWORD: Gx2fN7!uKq93zWv#
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
